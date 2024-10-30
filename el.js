@@ -1,3 +1,16 @@
+import { StatusBar } from "expo-status-bar";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+  Pressable,
+  Alert,
+  TextInput,
+} from "react-native";
+import { SQLiteProvider, useSQLiteContext } from "expo-sqlite";
+import { useState, useEffect } from "react";
+import { AntDesign } from "@expo/vector-icons";
 //StudentButton component
 const StudentButton = ({ student, deleteStudent, updateStudent }) => {
   const [selectedStudent, setSelectedStudent] = useState(null);
