@@ -16,7 +16,7 @@ async function initializeDatabase(db) {
   try {
     await db.execAsync(`
      PRAGMA journal_mode = WAL;
-     DROP TABLE IF EXISTS students;
+     DROP TABLE IF EXISTS students; -- Удаляем таблицу, если она существует
      CREATE TABLE IF NOT EXISTS students (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         lastName TEXT,
@@ -27,6 +27,7 @@ async function initializeDatabase(db) {
     `);
     console.log("Database initialized");
 
+    // Добавляем пять записей
     const students = [
       { lastName: "Иванов", firstName: "Иван", middleName: "Иванович" },
       { lastName: "Петров", firstName: "Петр", middleName: "Петрович" },
@@ -184,7 +185,6 @@ const Content = () => {
   const db = useSQLiteContext();
   const [students, setStudents] = useState([]);
   const [showForm, setShowForm] = useState(false);
-  const [showStudents, setShowStudents] = useState(false);
   const [student, setStudent] = useState({
     id: 0,
     lastName: "",
@@ -234,18 +234,20 @@ const Content = () => {
 
   const updateLastStudentToIvanov = async () => {
     try {
+      // Получаем последнюю запись
       const result = await db.getAllAsync(
         "SELECT * FROM students ORDER BY id DESC LIMIT 1"
       );
       const lastStudent = result[0];
 
       if (lastStudent) {
+        // Обновляем ФИО последней записи
         await db.runAsync(
           "UPDATE students SET lastName = ?, firstName = ?, middleName = ? WHERE id = ?",
           ["Иванов", "Иван", "Иванович", lastStudent.id]
         );
         console.log("Last student updated to Иванов Иван Иванович");
-        await getStudents();
+        await getStudents(); // Обновляем список студентов
       } else {
         console.log("No students found to update.");
       }
@@ -298,57 +300,32 @@ const Content = () => {
 
   return (
     <View style={styles.contentContainer}>
-      {!showStudents && (
-        <>
-          {showForm && (
-            <StudentForm
-              student={student}
-              setStudent={setStudent}
-              onSave={handleSave}
-              setShowForm={setShowForm}
-            />
-          )}
-          <View style={styles.iconsContent}>
-            <AntDesign
-              name="pluscircleo"
-              size={24}
-              color="blue"
-              onPress={() => setShowForm(true)}
-              style={styles.icon}
-            />
-            <Text
-              name="yhi"
-              size={24}
-              color="red"
-              onPress={confirmDeleteAll}
-              style={styles.icon}
-            >
-              Заменить
-            </Text>
-          </View>
-        </>
-      )}
-      <Pressable
-        onPress={() => setShowStudents(!showStudents)}
-        style={styles.showButton}
-      >
-        <Text style={styles.buttonText}>
-          {showStudents ? "Скрыть студентов" : "Показать студентов"}
-        </Text>
-      </Pressable>
-      {showStudents && (
-        <FlatList
-          data={students}
-          renderItem={({ item }) => (
-            <StudentButton
-              student={item}
-              deleteStudent={deleteStudent}
-              updateStudent={updateStudent}
-            />
-          )}
-          keyExtractor={(item) => item.id.toString()}
+      {showForm && (
+        <StudentForm
+          student={student}
+          setStudent={setStudent}
+          onSave={handleSave}
+          setShowForm={setShowForm}
         />
       )}
+      <View style={styles.iconsContent}>
+        <AntDesign
+          name="pluscircleo"
+          size={24}
+          color="blue"
+          onPress={() => setShowForm(true)}
+          style={styles.icon}
+        />
+        <Text
+          name="yhi"
+          size={24}
+          color="red"
+          onPress={confirmDeleteAll}
+          style={styles.icon}
+        >
+          Заменить
+        </Text>
+      </View>
     </View>
   );
 };
@@ -417,11 +394,6 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-around",
     padding: 10,
-  },
-  showButton: {
-    backgroundColor: "green",
-    padding: 10,
-    marginVertical: 5,
   },
 });
 
